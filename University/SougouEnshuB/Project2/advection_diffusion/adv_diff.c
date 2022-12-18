@@ -4,7 +4,7 @@
 
 #define N 100        // 格子数 N+1 xy共通
 #define KAPPA 0.01   // 熱拡散率                    ←ここを変更
-#define C 1.0       // 移流項の係数
+#define C 0.05       // 移流項の係数
 #define L 1.0       // 計算領域 [0, L]
 #define T_END 10   // 最終計算時刻 単位[sec]に注意     ←ここを変更
 
