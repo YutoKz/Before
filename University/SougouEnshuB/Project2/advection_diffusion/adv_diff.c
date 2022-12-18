@@ -3,8 +3,9 @@
 #include <stdlib.h>
 
 #define N 100        // 格子数 N+1 xy共通
-#define KAPPA 0.01   // 熱拡散率                    ←ここを変更
-#define C 0.05       // 移流項の係数
+#define KAPPA 0.005   // 熱拡散率                    ←ここを変更
+#define C_x 0.05       // 移流項の係数
+#define C_y 0.05
 #define L 1.0       // 計算領域 [0, L]
 #define T_END 10   // 最終計算時刻 単位[sec]に注意     ←ここを変更
 
@@ -115,7 +116,8 @@ int main(void)
 
     // 計算用
     double ktr = KAPPA * dt / dr / dr;
-    double ctr = C * dt / dr;
+    double ctr_x = C_x * dt / dr;
+    double ctr_y = C_y * dt / dr;
     int steps_per_sec = 1.0 / dt;      // 1s ごとのステップ数
   
     // メインループ
@@ -131,7 +133,8 @@ int main(void)
                 // 更新式
                 theta_next[i][j] = theta_current[i][j] 
                                 + ktr * (theta_current[i+1][j] + theta_current[i-1][j] - 4.0 * theta_current[i][j] + theta_current[i][j+1] + theta_current[i][j-1]) 
-                                - ctr * (2.0 * theta_current[i][j] - theta_current[i-1][j] - theta_current[i][j-1]);
+                                - ctr_x * (theta_current[i][j] - theta_current[i-1][j])
+                                - ctr_y * (theta_current[i][j] - theta_current[i][j-1]);
             }
         }
 
