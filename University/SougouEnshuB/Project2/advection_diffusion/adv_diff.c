@@ -3,31 +3,14 @@
 #include <stdlib.h>
 
 #define N 100        // 格子数 N+1 xy共通
-#define KAPPA 0.001   // 熱拡散率                    ←ここを変更
+#define KAPPA 0.001   // 熱拡散率
 #define C_x 0.05       // 移流項の係数
-#define C_y 0.05
+#define C_y -0.08
 #define L 1.0       // 計算領域 [0, L]
-#define T_END 10   // 最終計算時刻 単位[sec]に注意     ←ここを変更
+#define T_END 15   // 最終計算時刻 単位[sec]に注意
 
 /*
 KAPPA dt (2/dr^2) <= 1/2
-*/
-
-/*
-// 画像生成用のファイル書き込み関数 4次元のグラフは書けないので、使わない可能性あり
-void write_for_image(double dr, double time, FILE* fp, double** theta)
-{
-    int i, j;
-
-    for(i = 0; i <= N; i++)
-    {
-        for(j = 0; j <= N; j++)
-        {
-            fprintf(fp, "%f %f %f %f\n", time, i*dr, j*dr, theta[i][j]);
-        }
-    }
-    fprintf(fp, "\n");
-}
 */
 
 // GIF生成用のファイル書き込み関数
@@ -79,6 +62,7 @@ int main(void)
             theta_next[i][j] = 1.0;
         }
     }
+    /*
     for(i = N / 10; i < N / 5; i++)
     {
         for(j = N / 10; j < N / 5; j++)
@@ -87,6 +71,7 @@ int main(void)
             theta_next[i][j] = 2.0;
         }
     }
+    */
 
 
     // 境界条件
@@ -106,11 +91,24 @@ int main(void)
     }
 
 
+    for(i = 0; i <= N * 3 / 5; i++)
+    {
+        theta_current[i][N * 3 / 5] = 1.0;
+        theta_next[i][N * 3 / 5] = 1.0;
+    }
+
+
+    for(i = N * 4 / 5; i < N; i++)
+    {
+        theta_current[0][i] = 2.0;
+        theta_next[0][i] = 2.0;
+    }
+
+
     double time = 0.0;
 
 
     // t = 0 での分布を記録
-    // write_for_image(dr, time, fp0, theta_current); 
     write_for_gif(dr, time, fp1, theta_current);
 
 
@@ -128,21 +126,25 @@ int main(void)
         step++;
         for(i = 1; i <= N-1; i++)
         {
-            for(j = 1; j <= N-1; j++)
+            if(i <= N * 3 / 5)
             {
-                // 更新式
-                if(j <= N / 3)
+                for(j = N * 3 / 5; j <= N-1; j++)
                 {
+                    // 更新式
                     theta_next[i][j] = theta_current[i][j] 
                                     + ktr * (theta_current[i+1][j] + theta_current[i-1][j] - 4.0 * theta_current[i][j] + theta_current[i][j+1] + theta_current[i][j-1]) 
-                                    - ctr_y * (theta_current[i][j] - theta_current[i][j-1]);
+                                    - ctr_x * (theta_current[i][j] - theta_current[i-1][j]);
                 }
-                else
+            }
+            else
+            {
+                for(j = 1; j <= N-1; j++)
                 {
+                    // 更新式
                     theta_next[i][j] = theta_current[i][j] 
                                     + ktr * (theta_current[i+1][j] + theta_current[i-1][j] - 4.0 * theta_current[i][j] + theta_current[i][j+1] + theta_current[i][j-1]) 
                                     - ctr_x * (theta_current[i][j] - theta_current[i-1][j])
-                                    - ctr_y * (theta_current[i][j] - theta_current[i][j-1]);;
+                                    - ctr_y * (theta_current[i][j] - theta_current[i][j-1]);
                 }
             }
         }
@@ -157,7 +159,6 @@ int main(void)
 
         if(step % (steps_per_sec/5) == 0)
         {
-            // write_for_image(dr, time, fp0, theta_current);
             write_for_gif(dr, time, fp1, theta_current);
             printf("Now: t = %f\n", time);
         }

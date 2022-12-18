@@ -16,7 +16,7 @@ set term gif animate
 set output "result_ad.gif"
 
 n0 = 1  
-n1 = 51
+n1 = 76
 dn = 1
 
 load "2d_gif_ad.plt" 
