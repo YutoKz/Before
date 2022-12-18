@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #define N 100        // 格子数 N+1 xy共通
-#define KAPPA 0.005   // 熱拡散率                    ←ここを変更
+#define KAPPA 0.001   // 熱拡散率                    ←ここを変更
 #define C_x 0.05       // 移流項の係数
 #define C_y 0.05
 #define L 1.0       // 計算領域 [0, L]
@@ -79,9 +79,9 @@ int main(void)
             theta_next[i][j] = 1.0;
         }
     }
-    for(i = N / 4; i < N / 2; i++)
+    for(i = N / 10; i < N / 5; i++)
     {
-        for(j = N / 4; j < N / 2; j++)
+        for(j = N / 10; j < N / 5; j++)
         {
             theta_current[i][j] = 2.0;
             theta_next[i][j] = 2.0;
@@ -131,10 +131,19 @@ int main(void)
             for(j = 1; j <= N-1; j++)
             {
                 // 更新式
-                theta_next[i][j] = theta_current[i][j] 
-                                + ktr * (theta_current[i+1][j] + theta_current[i-1][j] - 4.0 * theta_current[i][j] + theta_current[i][j+1] + theta_current[i][j-1]) 
-                                - ctr_x * (theta_current[i][j] - theta_current[i-1][j])
-                                - ctr_y * (theta_current[i][j] - theta_current[i][j-1]);
+                if(j <= N / 3)
+                {
+                    theta_next[i][j] = theta_current[i][j] 
+                                    + ktr * (theta_current[i+1][j] + theta_current[i-1][j] - 4.0 * theta_current[i][j] + theta_current[i][j+1] + theta_current[i][j-1]) 
+                                    - ctr_y * (theta_current[i][j] - theta_current[i][j-1]);
+                }
+                else
+                {
+                    theta_next[i][j] = theta_current[i][j] 
+                                    + ktr * (theta_current[i+1][j] + theta_current[i-1][j] - 4.0 * theta_current[i][j] + theta_current[i][j+1] + theta_current[i][j-1]) 
+                                    - ctr_x * (theta_current[i][j] - theta_current[i-1][j])
+                                    - ctr_y * (theta_current[i][j] - theta_current[i][j-1]);;
+                }
             }
         }
 
