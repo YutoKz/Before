@@ -1,0 +1,14 @@
+基準の条件
+N 100       
+KAPPA 0.01  
+C_x 0.05     
+C_y 0.05
+L 1.0     
+T_END 10 
+
+result_ad_eakon_L.gif
+KAPPA 0.001
+C_x 0.05     
+C_y -0.08
+L 1.0     
+T_END 15
