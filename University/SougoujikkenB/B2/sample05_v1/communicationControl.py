@@ -1,6 +1,8 @@
 import numpy as np
 import math
 
+import random
+
 class CommunicationControl:
     def __init__(self, FREQUENCY0, FREQUENCY1, SAMPLING_RATE, BPS, IS_MANCHESTER):
         """インスタンス変数の初期化"""
@@ -43,11 +45,26 @@ class CommunicationControl:
     def calc_parity(self, data_in):
         parity = 0
         #ここに偶数パリティを計算するコードを書く。
-
-
-
+        for data in data_in:
+            parity += data
+        
+        parity = parity % 2
 
         return parity
+
+
+    def calc_parity_error(self, data_in):
+        parity = 0
+        #奇パリティで実装
+        for data in data_in:
+            parity += data
+        
+        parity += 1
+        parity = parity % 2
+
+        return parity
+
+
 
     def decimal_to_binarylist(self, dec, length):
         bin_list = []
@@ -252,9 +269,18 @@ class CommunicationControl:
         #ペイロード（データ）を連結
         mac_tx_out += data_in
         #ペイロードのパリティを計算、連結
-        mac_tx_out += [self.calc_parity(data_in)]
+        
+        
+        
+        # 75%の確率でエラー
+        if(random.randint(0, 3) == 0):
+            mac_tx_out += [self.calc_parity(data_in)]
+        else:
+            mac_tx_out += [self.calc_parity_error(data_in)]
 
         return mac_tx_out
+
+
 
     def phy_layer_tx(self, data_in):
         tx_wave = np.empty(0)
@@ -307,6 +333,15 @@ class CommunicationControl:
         # ・ACKを受けた場合はdata_in[idx + 1:idx + 2]とFalseを返す
         # ・NACKを受けた場合はdata_in[idx + 1:idx + 2]とTrueを返す
         # ・それ以外の場合は空配列とFalseを返す（300行目と同じ）
+
+        if(data_in[idx+1]==1 and data_in[idx+2]==1):
+            return data_in[idx+1:idx+2], False
+        elif(data_in[idx+1]==0 and data_in[idx+2]==0):
+            return data_in[idx+1:idx+2], True
+        else:
+            return [], False
+
+
 
     def rx_acknack(self, rx_wave):
         dec_data = self.phy_layer_rx(rx_wave)
