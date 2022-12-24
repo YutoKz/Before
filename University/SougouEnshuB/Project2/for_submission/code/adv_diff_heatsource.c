@@ -3,11 +3,11 @@
 #include <stdlib.h>
 
 #define N 100        // 格子数 N+1 xy共通
-#define KAPPA 0.01   // 熱拡散率
+#define KAPPA 0.005   // 熱拡散率                    ←ここを変更
 #define C_x 0.05       // 移流項の係数
-#define C_y 0.05
+#define C_y 0.0
 #define L 1.0       // 計算領域 [0, L]
-#define T_END 10   // 最終計算時刻 単位[sec]に注意
+#define T_END 10   // 最終計算時刻 単位[sec]に注意     ←ここを変更
 
 /*
     KAPPA dt (2/dr^2) <= 1/2
@@ -48,8 +48,7 @@ int main(void)
   
 
     // 書き込み用ファイル準備
-    FILE *fp0, *fp1;
-    // fp0 = fopen("2d_temperature_for_image.dat", "w");
+    FILE *fp1;
     fp1 = fopen("2d_temperature_for_gif_ad.dat", "w");
 
 
@@ -62,19 +61,9 @@ int main(void)
             theta_next[i][j] = 1.0;
         }
     }
-    /*
-    for(i = N / 10; i < N / 5; i++)
-    {
-        for(j = N / 10; j < N / 5; j++)
-        {
-            theta_current[i][j] = 2.0;
-            theta_next[i][j] = 2.0;
-        }
-    }
-    */
 
 
-    // 境界条件　今回は周期境界条件で統一
+    // 境界条件
     for(i = 0; i <= N; i++)
     {
         theta_current[i][N] = 1.0;
@@ -89,16 +78,7 @@ int main(void)
         theta_current[0][i] = 1.0;
         theta_next[0][i] = 1.0;
     }
-
-
-    for(i = 0; i <= N * 3 / 5; i++)
-    {
-        theta_current[i][N * 3 / 5] = 1.0;
-        theta_next[i][N * 3 / 5] = 1.0;
-    }
-
-
-    for(i = N * 4 / 5; i < N; i++)
+    for(i = N * 2 / 5; i < N * 3 / 5; i++)
     {
         theta_current[0][i] = 2.0;
         theta_next[0][i] = 2.0;
@@ -126,26 +106,13 @@ int main(void)
         step++;
         for(i = 1; i <= N-1; i++)
         {
-            if(i <= N * 3 / 5)
+            for(j = 1; j <= N-1; j++)
             {
-                for(j = N * 3 / 5; j <= N-1; j++)
-                {
-                    // 更新式
-                    theta_next[i][j] = theta_current[i][j] 
-                                    + ktr * (theta_current[i+1][j] + theta_current[i-1][j] - 4.0 * theta_current[i][j] + theta_current[i][j+1] + theta_current[i][j-1]) 
-                                    - ctr_x * (theta_current[i][j] - theta_current[i-1][j]);
-                }
-            }
-            else
-            {
-                for(j = 1; j <= N-1; j++)
-                {
-                    // 更新式
-                    theta_next[i][j] = theta_current[i][j] 
-                                    + ktr * (theta_current[i+1][j] + theta_current[i-1][j] - 4.0 * theta_current[i][j] + theta_current[i][j+1] + theta_current[i][j-1]) 
-                                    - ctr_x * (theta_current[i][j] - theta_current[i-1][j])
-                                    - ctr_y * (theta_current[i][j] - theta_current[i][j-1]);
-                }
+                // 更新式
+                theta_next[i][j] = theta_current[i][j] 
+                                + ktr * (theta_current[i+1][j] + theta_current[i-1][j] - 4.0 * theta_current[i][j] + theta_current[i][j+1] + theta_current[i][j-1]) 
+                                - ctr_x * (theta_current[i][j] - theta_current[i-1][j])
+                                - ctr_y * (theta_current[i][j] - theta_current[i][j-1]);
             }
         }
 
@@ -164,7 +131,6 @@ int main(void)
         }
     }
 
-    fclose(fp0);
     fclose(fp1);
 
     return 0;

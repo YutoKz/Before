@@ -3,11 +3,11 @@
 #include <stdlib.h>
 
 #define N 100        // 格子数 N+1 xy共通
-#define KAPPA 0.01   // 熱拡散率
+#define KAPPA 0.001   // 熱拡散率
 #define C_x 0.05       // 移流項の係数
-#define C_y 0.05
+#define C_y -0.08
 #define L 1.0       // 計算領域 [0, L]
-#define T_END 10   // 最終計算時刻 単位[sec]に注意
+#define T_END 15   // 最終計算時刻 単位[sec]に注意
 
 /*
     KAPPA dt (2/dr^2) <= 1/2
@@ -48,8 +48,7 @@ int main(void)
   
 
     // 書き込み用ファイル準備
-    FILE *fp0, *fp1;
-    // fp0 = fopen("2d_temperature_for_image.dat", "w");
+    FILE *fp1;
     fp1 = fopen("2d_temperature_for_gif_ad.dat", "w");
 
 
@@ -62,19 +61,9 @@ int main(void)
             theta_next[i][j] = 1.0;
         }
     }
-    /*
-    for(i = N / 10; i < N / 5; i++)
-    {
-        for(j = N / 10; j < N / 5; j++)
-        {
-            theta_current[i][j] = 2.0;
-            theta_next[i][j] = 2.0;
-        }
-    }
-    */
 
 
-    // 境界条件　今回は周期境界条件で統一
+    // 境界条件 熱源あり
     for(i = 0; i <= N; i++)
     {
         theta_current[i][N] = 1.0;
@@ -90,14 +79,7 @@ int main(void)
         theta_next[0][i] = 1.0;
     }
 
-
-    for(i = 0; i <= N * 3 / 5; i++)
-    {
-        theta_current[i][N * 3 / 5] = 1.0;
-        theta_next[i][N * 3 / 5] = 1.0;
-    }
-
-
+    // 熱源
     for(i = N * 4 / 5; i < N; i++)
     {
         theta_current[0][i] = 2.0;
@@ -164,7 +146,6 @@ int main(void)
         }
     }
 
-    fclose(fp0);
     fclose(fp1);
 
     return 0;

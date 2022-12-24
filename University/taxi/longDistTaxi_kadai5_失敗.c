@@ -214,8 +214,16 @@ int solve(int n, int m, int cap) {
     int j;
     searchNode_t here = dequeue(&Q);
      
-    if(cost[here.cityID][0] < here.pathLen) continue;
+    // どうもここの有無で変わる様    
+    /*
+    if(cost[here.cityID][0] < here.pathLen) 
+    {
+      continue;
+    }
     assert(cost[here.cityID][0] == here.pathLen);
+    */
+
+
     if(here.cityID == 1) break;
 
     for(j=0; j<roadinfo[here.cityID].num; j++) { /* 隣接ノードをenqueue　1ループが1隣接ノードに対する操作にあたる*/ 
@@ -254,8 +262,10 @@ int solve(int n, int m, int cap) {
 
       if(nextDrivingRange >= 0 && (cost[destination][0] == INT_MAX || cost[destination][0] > nextPathLen))  // 試しに逆に
       {
-        if(withGas[here.cityID] == true)
+        if(withGas[destination] == true)
+        {
           nextDrivingRange = cap * 10;
+        }
         searchNode_t next = {nextPathLen, destination, nextDrivingRange};
         cost[destination][0] = nextPathLen;
         cost[destination][1] = nextDrivingRange;
@@ -264,7 +274,7 @@ int solve(int n, int m, int cap) {
       }
       else if(nextDrivingRange >= 0 && cost[destination][0] < nextPathLen && cost[destination][1] < nextDrivingRange)
       {
-        if(withGas[here.cityID] == true)
+        if(withGas[destination] == true)
           nextDrivingRange = cap * 10;
         searchNode_t next = {nextPathLen, destination, nextDrivingRange};
 

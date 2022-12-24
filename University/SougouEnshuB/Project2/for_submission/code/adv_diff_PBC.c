@@ -1,17 +1,19 @@
-// Code by Yuto Kizawa 2022/12/21
+// Code by Yuto Kizawa 2022/11/24
+// 周期境界条件の場合
 #include <stdio.h>
 #include <stdlib.h>
 
 #define N 100        // 格子数 N+1 xy共通
-#define KAPPA 0.01   // 熱拡散率
+#define KAPPA 0.005   // 熱拡散率                    ←ここを変更
 #define C_x 0.05       // 移流項の係数
 #define C_y 0.05
 #define L 1.0       // 計算領域 [0, L]
-#define T_END 10   // 最終計算時刻 単位[sec]に注意
+#define T_END 10   // 最終計算時刻 単位[sec]に注意     ←ここを変更
 
 /*
-    KAPPA dt (2/dr^2) <= 1/2
+KAPPA dt (2/dr^2) <= 1/2
 */
+
 
 // GIF生成用のファイル書き込み関数
 void write_for_gif(double dr, double time, FILE* fp, double** theta)
@@ -61,6 +63,14 @@ int main(void)
             theta_next[i][j] = 1.0;
         }
     }
+    for(i = N / 4; i < N / 2; i++)
+    {
+        for(j = N / 4; j < N / 2; j++)
+        {
+            theta_current[i][j] = 2.0;
+            theta_next[i][j] = 2.0;
+        }
+    }
 
 
     // 境界条件
@@ -77,12 +87,6 @@ int main(void)
 
         theta_current[0][i] = 1.0;
         theta_next[0][i] = 1.0;
-    }
-
-    for(i = N * 4 / 5; i < N; i++)
-    {
-        theta_current[0][i] = 2.0;
-        theta_next[0][i] = 2.0;
     }
 
 
@@ -107,26 +111,13 @@ int main(void)
         step++;
         for(i = 1; i <= N-1; i++)
         {
-            if(i <= N * 3 / 5)
+            for(j = 1; j <= N-1; j++)
             {
-                for(j = N * 3 / 5; j <= N-1; j++)
-                {
-                    // 更新式
-                    theta_next[i][j] = theta_current[i][j] 
-                                    + ktr * (theta_current[i+1][j] + theta_current[i-1][j] - 4.0 * theta_current[i][j] + theta_current[i][j+1] + theta_current[i][j-1]) 
-                                    - ctr_x * (theta_current[i][j] - theta_current[i-1][j]);
-                }
-            }
-            else
-            {
-                for(j = 1; j <= N-1; j++)
-                {
-                    // 更新式
-                    theta_next[i][j] = theta_current[i][j] 
-                                    + ktr * (theta_current[i+1][j] + theta_current[i-1][j] - 4.0 * theta_current[i][j] + theta_current[i][j+1] + theta_current[i][j-1]) 
-                                    - ctr_x * (theta_current[i][j] - theta_current[i-1][j])
-                                    - ctr_y * (theta_current[i][j] - theta_current[i][j-1]);
-                }
+                // 更新式
+                theta_next[i][j] = theta_current[i][j] 
+                                + ktr * (theta_current[i+1][j] + theta_current[i-1][j] - 4.0 * theta_current[i][j] + theta_current[i][j+1] + theta_current[i][j-1]) 
+                                - ctr_x * (theta_current[i][j] - theta_current[i-1][j])
+                                - ctr_y * (theta_current[i][j] - theta_current[i][j-1]);
             }
         }
 
