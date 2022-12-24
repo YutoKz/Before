@@ -1,4 +1,5 @@
-// Code by Yuto Kizawa 2022/11/09
+// Code by Yuto Kizawa 2022/12/24
+// 熱源がある場合
 #include <stdio.h>
 #include <stdlib.h>
 

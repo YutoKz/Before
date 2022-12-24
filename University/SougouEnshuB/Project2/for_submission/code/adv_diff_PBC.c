@@ -1,4 +1,4 @@
-// Code by Yuto Kizawa 2022/11/24
+// Code by Yuto Kizawa 2022/12/24
 // 周期境界条件の場合
 #include <stdio.h>
 #include <stdlib.h>
