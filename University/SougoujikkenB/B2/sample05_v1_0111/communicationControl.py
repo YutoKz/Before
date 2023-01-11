@@ -39,16 +39,33 @@ class CommunicationControl:
         self.frequency_analysis_rx(init_frame, True)
         print(f"th0:{self.freq0_threshold}, th1:{self.freq1_threshold}")
 
-    #data_in（リスト）からパリティを計算する。
+    #data_in（リスト）から水平垂直パリティを計算する。
     def calc_parity(self, data_in):
-        parity = 0
-        #ここに偶数パリティを計算するコードを書く。
+        parity = []
+        parity_local = 0
+        #ここに水平垂直パリティを計算するコードを書く。
+
+        num_of_VRC = (len(data_in) - 1) / 7 + 1
+        num_of_last = len(data_in) - 7 * (num_of_VRC - 1)
+
+        # VRC
+        for i in range(num_of_VRC):
+            if(i != num_of_VRC - 1):
+                for j in range(7):
+                    parity_local += data_in[7 * i + j]
+            else:
+                for j in range(num_of_last):
+                    parity_local += data_in[7 * i + j]
+
+            parity_local = parity_local % 2
+            parity += parity_local
+            parity_local = 0
+        
+        # LRC
+        
 
 
-
-
-
-
+        # VRC LRC の順に配列として返す
         return parity
 
     def decimal_to_binarylist(self, dec, length):
