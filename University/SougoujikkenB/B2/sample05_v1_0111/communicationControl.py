@@ -45,7 +45,7 @@ class CommunicationControl:
         parity_local = 0
         #ここに水平垂直パリティを計算するコードを書く。
 
-        num_of_VRC = (len(data_in) - 1) / 7 + 1
+        num_of_VRC = math.floor((len(data_in) - 1) / 7 + 1)
         num_of_last = len(data_in) - 7 * (num_of_VRC - 1)
 
         # VRC
@@ -58,7 +58,7 @@ class CommunicationControl:
                     parity_local += data_in[7 * i + j]
 
             parity_local = parity_local % 2
-            parity += parity_local
+            parity = np.append(parity, parity_local)
             parity_local = 0
         
         # LRC
@@ -72,7 +72,7 @@ class CommunicationControl:
                     parity_local += data_in[7 * j + i]
 
             parity_local = parity_local % 2
-            parity += parity_local
+            parity = np.append(parity, parity_local)
             parity_local = 0
         
         # 最後の1個
@@ -80,7 +80,7 @@ class CommunicationControl:
             parity_local += parity[i]
 
         parity_local = parity_local % 2
-        parity += parity_local
+        parity = np.append(parity, parity_local)
         parity_local = 0
         
 
@@ -235,6 +235,9 @@ class CommunicationControl:
         print(f"receiver id{receiver_id}")
         print(f"sender id{sender_id}")
         print(f"data_length{data_length}")
+        print(len(data_in))
+        
+        
         if receiver_id != self.my_id:
             return [], False
 
@@ -246,15 +249,76 @@ class CommunicationControl:
         payload = data_in[idx + 17:idx + 17 + self.binarylist_to_decimal(data_length)]
         print(f"payload{payload}")
 
+
+        
+
+
         #パリティ
-        parity = data_in[idx + 17 + self.binarylist_to_decimal(data_length)]
-        print(f"parity{parity}")
-        if parity == self.calc_parity(payload):
+        #parity = data_in[idx + 17 + self.binarylist_to_decimal(data_length)]
+        #print(f"parity{parity}")
+
+        '''
+        last_index = idx + 17 + self.binarylist_to_decimal(data_length) + 11
+
+        parity = data_in[idx + 17 + self.binarylist_to_decimal(data_length) : last_index]
+        #if parity == self.calc_parity(payload):
+        if np.allclose(parity, self.calc_parity(payload)):
             print("パリティが一致しました。")
             return payload, False
         else:
             print("パリティが一致しません。")
             return payload, True
+        '''
+        Vparity_flag = True
+        Lparity_flag = True
+        last_index = idx + 17 + self.binarylist_to_decimal(data_length) + math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1) + 8
+        data_in_parity = data_in[idx + 17 + self.binarylist_to_decimal(data_length) : last_index]
+        calculated_parity = self.calc_parity(payload)
+
+        payload_add = payload
+        for i in range(7 - self.binarylist_to_decimal(data_length) % 7):
+            payload_add += [0]
+
+        print('')
+        print('RxData=')
+        for i in range(math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)):
+            for j in range(7):
+                print(payload_add[7 * i + j], end=" ")
+            if(calculated_parity[i] == data_in_parity[i]):
+                print(int(calculated_parity[i]), end=" ")
+            else:
+                print('*', end=" ")
+                Vparity_flag = False
+            print('\n')
+        for i in range(8):
+            tmp = math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1) + i
+            if(calculated_parity[tmp] == data_in_parity[tmp]):
+                print(int(calculated_parity[tmp]), end=" ")
+            else:
+                print('* ', end=" ")
+                Lparity_flag = False
+        print("\n")
+        
+        print('Vparity', end=" ")
+        if(Vparity_flag):
+            print('OK', end=", ")
+        else:
+            print('FAIL', end=", ")
+        print('Lparity', end=" ")
+        if(Lparity_flag):
+            print('OK', end=", ")
+        else:
+            print('FAIL', end=", ")
+
+        if(Vparity_flag and Lparity_flag):
+            print('Correct data\n')
+            return payload, False
+        else:
+            print('Incorrect data\n')
+            return payload, True
+        
+        
+        
 
 
     def network_layer_rx(self, data_in):

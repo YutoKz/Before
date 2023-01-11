@@ -14,7 +14,7 @@ import communicationControl
 # データ送受信に使用する音の周波数設定
 # （Frequency Shift Keyingで変調するので2種類使う）
 FREQUENCY0 = 2500
-FREQUENCY1 = 3500
+FREQUENCY1 = 4500
 # 送受信ビットレート（bit per second）
 # （マンチェスター符号が有効の場合実効レートは半分になる）
 BPS = 50
@@ -25,7 +25,7 @@ IS_MANCHESTER = True
 VOLUME = 0.7
 # 複数のマイク/スピーカーがある場合はここでINDEXを設定する
 INPUT_DEVICE_INDEX = 0
-OUTPUT_DEVICE_INDEX = 2
+OUTPUT_DEVICE_INDEX = 1
 # 録音データを（CHUNK/SAMPLING_RATE）秒ごとに処理する
 #CHUNK = 32768 #for Win10
 CHUNK = 8192 #for MacOS
