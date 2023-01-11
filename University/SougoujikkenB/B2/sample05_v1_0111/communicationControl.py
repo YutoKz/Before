@@ -279,6 +279,16 @@ class CommunicationControl:
         for i in range(7 - self.binarylist_to_decimal(data_length) % 7):
             payload_add += [0]
 
+        Vparity_fail_index = []
+        Lparity_fail_indel = []
+        for i in range(math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)):
+            if(calculated_parity[i] != data_in_parity[i]):
+                Vparity_fail_index += [i]
+        for i in range(7):
+            if(calculated_parity[tmp] == data_in_parity[tmp]):
+                Lparity_fail_index += [i]
+
+
         print('')
         print('RxData=')
         for i in range(math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)):
@@ -287,16 +297,19 @@ class CommunicationControl:
             if(calculated_parity[i] == data_in_parity[i]):
                 print(int(calculated_parity[i]), end=" ")
             else:
-                print('*', end=" ")
-                Vparity_flag = False
-            print('\n')
+                
+
+
+            print('')
+        print('----------------------------')
         for i in range(8):
             tmp = math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1) + i
             if(calculated_parity[tmp] == data_in_parity[tmp]):
                 print(int(calculated_parity[tmp]), end=" ")
             else:
-                print('* ', end=" ")
-                Lparity_flag = False
+
+                
+
         print("\n")
         
         print('Vparity', end=" ")
