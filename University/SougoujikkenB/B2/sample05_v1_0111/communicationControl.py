@@ -257,18 +257,6 @@ class CommunicationControl:
         #parity = data_in[idx + 17 + self.binarylist_to_decimal(data_length)]
         #print(f"parity{parity}")
 
-        '''
-        last_index = idx + 17 + self.binarylist_to_decimal(data_length) + 11
-
-        parity = data_in[idx + 17 + self.binarylist_to_decimal(data_length) : last_index]
-        #if parity == self.calc_parity(payload):
-        if np.allclose(parity, self.calc_parity(payload)):
-            print("パリティが一致しました。")
-            return payload, False
-        else:
-            print("パリティが一致しません。")
-            return payload, True
-        '''
         Vparity_flag = True
         Lparity_flag = True
         last_index = idx + 17 + self.binarylist_to_decimal(data_length) + math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1) + 8
@@ -280,36 +268,42 @@ class CommunicationControl:
             payload_add += [0]
 
         Vparity_fail_index = []
-        Lparity_fail_indel = []
-        for i in range(math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)):
+        Lparity_fail_index = []
+        tmp = math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)
+        for i in range(tmp):
             if(calculated_parity[i] != data_in_parity[i]):
                 Vparity_fail_index += [i]
+                Vparity_flag= False
         for i in range(7):
-            if(calculated_parity[tmp] == data_in_parity[tmp]):
+            if(calculated_parity[tmp + i] == data_in_parity[tmp + i]):
                 Lparity_fail_index += [i]
+                Lparity_flag = False
+
+        
+        if(len(Vparity_fail_index) == 1 and len(Lparity_fail_index) == 1):
+            error_v = Vparity_fail_index[0]
+            error_l = Lparity_fail_index[0]
+        else:
+            error_v = -1
+            error_l = -1
 
 
+        # 誤りは確実なもののみ表示
+        # 誤りが複数ある場合、位置の特定は不可能であり、わかるのは「誤りが複数ある」ことだけ
         print('')
         print('RxData=')
         for i in range(math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)):
             for j in range(7):
-                print(payload_add[7 * i + j], end=" ")
-            if(calculated_parity[i] == data_in_parity[i]):
-                print(int(calculated_parity[i]), end=" ")
-            else:
-                
-
-
+                if(i == error_v and j == error_l):
+                    print('*', end=" ")
+                else:
+                    print(payload_add[7 * i + j], end=" ")
+            print(int(data_in_parity[i]), end=" ")
             print('')
         print('----------------------------')
         for i in range(8):
             tmp = math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1) + i
-            if(calculated_parity[tmp] == data_in_parity[tmp]):
-                print(int(calculated_parity[tmp]), end=" ")
-            else:
-
-                
-
+            print(int(data_in_parity[tmp]), end=" ")
         print("\n")
         
         print('Vparity', end=" ")

@@ -14,7 +14,7 @@ import communicationControl
 # データ送受信に使用する音の周波数設定
 # （Frequency Shift Keyingで変調するので2種類使う）
 FREQUENCY0 = 2500
-FREQUENCY1 = 4500
+FREQUENCY1 = 3500
 # 送受信ビットレート（bit per second）
 # （マンチェスター符号が有効の場合実効レートは半分になる）
 BPS = 50
