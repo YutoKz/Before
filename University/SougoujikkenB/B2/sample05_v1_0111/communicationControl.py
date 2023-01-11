@@ -62,8 +62,27 @@ class CommunicationControl:
             parity_local = 0
         
         # LRC
-        
+        # まず7個
+        for i in range(7):
+            if(i <= num_of_last - 1):
+                for j in range(num_of_VRC):
+                    parity_local += data_in[7 * j + i]
+            else:
+                for j in range(num_of_VRC - 1):
+                    parity_local += data_in[7 * j + i]
 
+            parity_local = parity_local % 2
+            parity += parity_local
+            parity_local = 0
+        
+        # 最後の1個
+        for i in range(num_of_VRC):
+            parity_local += parity[i]
+
+        parity_local = parity_local % 2
+        parity += parity_local
+        parity_local = 0
+        
 
         # VRC LRC の順に配列として返す
         return parity
