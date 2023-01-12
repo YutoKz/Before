@@ -9,7 +9,7 @@
 /**********************
  * map の情報
  */
-#define MAX_N_ROADS 3000
+#define MAX_N_ROADS 5000
 #define MAX_N_CITIES 2 * MAX_N_ROADS
 #define MAX_LENGTH_CITYNAME 15
 #define MAX_N_GAS 300
@@ -66,6 +66,11 @@ void setup(FILE* in, int n, int m) {
     char cityname[MAX_LENGTH_CITYNAME + 1];
     fscanf(in, "%s", cityname);
     withGas[searchOrRegisterCity(cityname)] = true;
+  }
+
+  for(i = 0; i < MAX_N_CITIES; i++)
+  {
+    roadinfo_gas[i].num = 0;
   }
 }
 
@@ -194,53 +199,6 @@ int compare(searchNode_tp a, searchNode_tp b) {
 priorityQ_t Q;
 int cost[MAX_N_CITIES];
 
-/*
-int solve(int n, int m, int cap) {
-  int i;
-  int count = 0;
-  reset(&Q);
-  for(i=0; i<MAX_N_CITIES;i++) { // setup
-    cost[i] = INT_MAX;
-  }
-
-  searchNode_t start = {0, 0};
-  cost[0] = 0;
-  enqueue(&Q, start);
-
-  TODO 
-  while(qSize(&Q) > 0) {
-    int j;
-    searchNode_t here = dequeue(&Q);
-     
-    if(cost[here.cityID] < here.pathLen) continue;
-    assert(cost[here.cityID] == here.pathLen);
-    if(here.cityID == 1) break;
-
-    for(j=0; j<roadinfo[here.cityID].num; j++) {  隣接ノードをenqueue　1ループが1隣接ノードに対する操作にあたる
-      int destination = roadinfo[here.cityID].roads[j].dest;
-      int distance    = roadinfo[here.cityID].roads[j].dist;
-      int nextPathLen = here.pathLen + distance;
-      searchNode_t next = {nextPathLen, destination};
-      
-      if(cost[destination] != INT_MAX && cost[destination] < nextPathLen)
-      {
-        continue;
-      }
-      else
-      {
-        cost[destination] = nextPathLen;
-        enqueue(&Q, next);
-        count++;
-      }
-    }
-  }
-
-  printf("Dijkstra: count %d\n", count);
-  if(cost[1]==INT_MAX) return -1;
-  return cost[1];
-}
-*/
-
 int solve(int n, int m, int cap) {
   int i, j;
   for(i = 0; i < MAX_N_CITIES; i++)
@@ -291,6 +249,9 @@ int solve(int n, int m, int cap) {
           int num = roadinfo_gas[i].num++;
           roadinfo_gas[i].roads[num].dest = j;
           roadinfo_gas[i].roads[num].dist = cost[j];
+          num = roadinfo_gas[j].num++;
+          roadinfo_gas[j].roads[num].dest = i;
+          roadinfo_gas[j].roads[num].dist = cost[j];
         }
       }
     }
@@ -337,16 +298,7 @@ int solve(int n, int m, int cap) {
   printf("Dijkstra: count %d\n", count);
   if(cost[1]==INT_MAX) return -1;
   return cost[1];
-
-
-
-
 }
-
-
-
-
-
 
 /*******
  * こちらで用意したmain 関数。
