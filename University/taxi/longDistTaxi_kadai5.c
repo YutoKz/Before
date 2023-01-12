@@ -24,6 +24,7 @@ typedef struct roadInfo {
   } roads[MAX_N_ROADS];
 } roadinfo_t, *roadinfo_tp;
 roadinfo_t roadinfo[MAX_N_CITIES];
+roadinfo_t roadinfo_gas[MAX_N_CITIES];
 
 bool withGas[MAX_N_CITIES];
 int cityNum;
@@ -193,6 +194,7 @@ int compare(searchNode_tp a, searchNode_tp b) {
 priorityQ_t Q;
 int cost[MAX_N_CITIES];
 
+/*
 int solve(int n, int m, int cap) {
   int i;
   int count = 0;
@@ -205,7 +207,7 @@ int solve(int n, int m, int cap) {
   cost[0] = 0;
   enqueue(&Q, start);
 
-  /* TODO */
+  TODO 
   while(qSize(&Q) > 0) {
     int j;
     searchNode_t here = dequeue(&Q);
@@ -214,7 +216,7 @@ int solve(int n, int m, int cap) {
     assert(cost[here.cityID] == here.pathLen);
     if(here.cityID == 1) break;
 
-    for(j=0; j<roadinfo[here.cityID].num; j++) { /* 隣接ノードをenqueue　1ループが1隣接ノードに対する操作にあたる*/ 
+    for(j=0; j<roadinfo[here.cityID].num; j++) {  隣接ノードをenqueue　1ループが1隣接ノードに対する操作にあたる
       int destination = roadinfo[here.cityID].roads[j].dest;
       int distance    = roadinfo[here.cityID].roads[j].dist;
       int nextPathLen = here.pathLen + distance;
@@ -237,13 +239,121 @@ int solve(int n, int m, int cap) {
   if(cost[1]==INT_MAX) return -1;
   return cost[1];
 }
+*/
+
+int solve(int n, int m, int cap) {
+  int i, j;
+  for(i = 0; i < MAX_N_CITIES; i++)
+  {
+    for(j = i + 1; j < MAX_N_CITIES; j++)
+    {
+      // ガソスタのある i から j への最短距離を保存
+      if(withGas[i] == true && withGas[j] == true)
+      {
+        int k;
+        reset(&Q);
+        for(k=0; k<MAX_N_CITIES;k++) { // setup
+          cost[k] = INT_MAX;
+        }
+
+        searchNode_t start = {0, i};
+        cost[i] = 0;
+        enqueue(&Q, start);
+
+        
+        while(qSize(&Q) > 0) {
+          searchNode_t here = dequeue(&Q);
+     
+          if(cost[here.cityID] < here.pathLen) continue;
+          assert(cost[here.cityID] == here.pathLen);
+          if(here.cityID == j) break;
+
+          for(k=0; k<roadinfo[here.cityID].num; k++) {  /*隣接ノードをenqueue　1ループが1隣接ノードに対する操作にあたる*/
+            int destination = roadinfo[here.cityID].roads[k].dest;
+            int distance    = roadinfo[here.cityID].roads[k].dist;
+            int nextPathLen = here.pathLen + distance;
+            searchNode_t next = {nextPathLen, destination};
+      
+            if(cost[destination] != INT_MAX && cost[destination] < nextPathLen)
+            {
+              continue;
+            }
+            else
+            {  
+              cost[destination] = nextPathLen;
+              enqueue(&Q, next);
+            }
+          }
+        }
+
+        if(cost[j] != INT_MAX)
+        { 
+          int num = roadinfo_gas[i].num++;
+          roadinfo_gas[i].roads[num].dest = j;
+          roadinfo_gas[i].roads[num].dist = cost[j];
+        }
+      }
+    }
+  }
+
+  // ガソスタありの都市のみで構成されるグラフにダイクストラ法
+  int count = 0;
+  reset(&Q);
+  for(i=0; i<MAX_N_CITIES;i++) { // setup
+    cost[i] = INT_MAX;
+  }
+
+  searchNode_t start = {0, 0};
+  cost[0] = 0;
+  enqueue(&Q, start);
+
+        
+  while(qSize(&Q) > 0) {
+    searchNode_t here = dequeue(&Q);
+     
+    if(cost[here.cityID] < here.pathLen) continue;
+    assert(cost[here.cityID] == here.pathLen);
+    if(here.cityID == 1) break;
+
+    for(i=0; i<roadinfo_gas[here.cityID].num; i++) {  /*隣接ノードをenqueue　1ループが1隣接ノードに対する操作にあたる*/
+      int destination = roadinfo_gas[here.cityID].roads[i].dest;
+      int distance    = roadinfo_gas[here.cityID].roads[i].dist;
+      int nextPathLen = here.pathLen + distance;
+      searchNode_t next = {nextPathLen, destination};
+
+      if((cost[destination] != INT_MAX && cost[destination] < nextPathLen) || distance > cap * 10)
+      {
+        continue;
+      }
+      else
+      {  
+        cost[destination] = nextPathLen;
+        enqueue(&Q, next);
+        count++;
+      }
+    }
+  }
+
+  printf("Dijkstra: count %d\n", count);
+  if(cost[1]==INT_MAX) return -1;
+  return cost[1];
+
+
+
+
+}
+
+
+
+
+
 
 /*******
  * こちらで用意したmain 関数。
  * 問題準備してから、solve() をよび、正解比較もおこなう。
  */
 int main(int argc, char* argv[]) {
-  int optionF = 0;
+  int optionF = 1;
   struct {
     char *in, *ans0, *ans;
   } filesets[] = {
