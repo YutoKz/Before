@@ -1,13 +1,14 @@
-// Code by Yuto Kizawa 2022/11/09
+// Code by Yuto Kizawa 2022/12/24
+// 熱源がある場合
 #include <stdio.h>
 #include <stdlib.h>
 
 #define N 100        // 格子数 N+1 xy共通
-#define KAPPA 0.005   // 熱拡散率                    ←ここを変更
+#define KAPPA 0.005   // 熱拡散率
 #define C_x 0.05       // 移流項の係数
 #define C_y 0.0
 #define L 1.0       // 計算領域 [0, L]
-#define T_END 10   // 最終計算時刻 単位[sec]に注意     ←ここを変更
+#define T_END 10   // 最終計算時刻 単位[sec]に注意 
 
 /*
     KAPPA dt (2/dr^2) <= 1/2

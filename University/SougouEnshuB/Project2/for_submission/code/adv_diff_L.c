@@ -1,4 +1,5 @@
-// Code by Yuto Kizawa 2022/11/09
+// Code by Yuto Kizawa 2022/12/24
+// 領域がL字になっており、位置によって移流項が変化する場合
 #include <stdio.h>
 #include <stdlib.h>
 
