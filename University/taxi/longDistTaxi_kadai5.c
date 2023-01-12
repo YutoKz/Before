@@ -1,3 +1,5 @@
+// 木澤祐人(2094572t) 課題５
+
 #include <assert.h>
 #include <limits.h>
 #include <math.h>
