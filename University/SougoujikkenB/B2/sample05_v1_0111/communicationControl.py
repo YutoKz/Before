@@ -266,7 +266,6 @@ class CommunicationControl:
         calculated_parity = self.calc_parity(payload)
 
         # 受信parityとparityの計算の２つは正しく行えているので、問題はこの関数のこれ以降
-        
         print(f"received_parity  {data_in_parity}")
         print(f"calculated_parity{calculated_parity}")
 
