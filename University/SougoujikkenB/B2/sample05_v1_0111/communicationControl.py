@@ -58,7 +58,8 @@ class CommunicationControl:
                     parity_local += data_in[7 * i + j]
 
             parity_local = parity_local % 2
-            parity = np.append(parity, parity_local)
+            #parity = np.append(parity, parity_local)
+            parity.append(parity_local)
             parity_local = 0
         
         # LRC
@@ -72,7 +73,8 @@ class CommunicationControl:
                     parity_local += data_in[7 * j + i]
 
             parity_local = parity_local % 2
-            parity = np.append(parity, parity_local)
+            #parity = np.append(parity, parity_local)
+            parity.append(parity_local)
             parity_local = 0
         
         # 最後の1個
@@ -80,8 +82,8 @@ class CommunicationControl:
             parity_local += parity[i]
 
         parity_local = parity_local % 2
-        parity = np.append(parity, parity_local)
-        parity_local = 0
+        #parity = np.append(parity, parity_local)
+        parity.append(parity_local)
         
 
         # VRC LRC の順に配列として返す
@@ -247,7 +249,7 @@ class CommunicationControl:
 
         #データ
         payload = data_in[idx + 17:idx + 17 + self.binarylist_to_decimal(data_length)]
-        print(f"payload{payload}")
+        print(f"payload    {payload}")
 
 
         
@@ -263,30 +265,52 @@ class CommunicationControl:
         data_in_parity = data_in[idx + 17 + self.binarylist_to_decimal(data_length) : last_index]
         calculated_parity = self.calc_parity(payload)
 
-        payload_add = payload
+        # 受信parityとparityの計算の２つは正しく行えているので、問題はこの関数のこれ以降
+        
+        print(f"received_parity  {data_in_parity}")
+        print(f"calculated_parity{calculated_parity}")
+
+        payload_add = []
+        payload_add += payload
         for i in range(7 - self.binarylist_to_decimal(data_length) % 7):
-            payload_add += [0]
+            payload_add.append(0)
+
+        # print(f"payload_add{payload_add}")
 
         Vparity_fail_index = []
         Lparity_fail_index = []
-        tmp = math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)
-        for i in range(tmp):
+
+        num_of_VRC = math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)
+
+        print(num_of_VRC)
+
+        if(len(calculated_parity) < (num_of_VRC+8) or len(data_in_parity) < (num_of_VRC+8)):
+            return payload, True
+
+        for i in range(num_of_VRC):
             if(calculated_parity[i] != data_in_parity[i]):
-                Vparity_fail_index += [i]
+                Vparity_fail_index.append(i)
                 Vparity_flag= False
+
+
+        # 間違い見つけた != が == になってた
         for i in range(7):
-            if(calculated_parity[tmp + i] == data_in_parity[tmp + i]):
-                Lparity_fail_index += [i]
+            if(calculated_parity[num_of_VRC + i] != data_in_parity[num_of_VRC + i]):
+                Lparity_fail_index.append(i)
                 Lparity_flag = False
 
-        
-        if(len(Vparity_fail_index) == 1 and len(Lparity_fail_index) == 1):
+
+        print(Vparity_fail_index)
+        print(Lparity_fail_index)
+
+
+        # 単一間違いの場合のみ位置特定可能
+        if(len(list(set(Vparity_fail_index))) == 1 and len(list(set(Lparity_fail_index))) == 1):
             error_v = Vparity_fail_index[0]
             error_l = Lparity_fail_index[0]
         else:
             error_v = -1
             error_l = -1
-
 
         # 誤りは確実なもののみ表示
         # 誤りが複数ある場合、位置の特定は不可能であり、わかるのは「誤りが複数ある」ことだけ
