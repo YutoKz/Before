@@ -275,14 +275,12 @@ class CommunicationControl:
         for i in range(7 - self.binarylist_to_decimal(data_length) % 7):
             payload_add.append(0)
 
-        # print(f"payload_add{payload_add}")
-
         Vparity_fail_index = []
         Lparity_fail_index = []
 
         num_of_VRC = math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)
 
-        print(f"num_of_VRC : {num_of_VRC}")
+        print(f"num_of_VRC : {num_of_VRC}/n")
 
         if(len(calculated_parity) < (num_of_VRC+8) or len(data_in_parity) < (num_of_VRC+8)):
             return [], True
@@ -293,7 +291,7 @@ class CommunicationControl:
                 Vparity_flag= False
 
 
-        # 間違い発見 != が == になってた
+        # (コードミス修正済み != が == になっていた)
         for i in range(7):
             if(calculated_parity[num_of_VRC + i] != data_in_parity[num_of_VRC + i]):
                 Lparity_fail_index.append(i)
@@ -307,9 +305,11 @@ class CommunicationControl:
         # 単一間違いの場合のみ位置特定可能、すなわち訂正可能
         revisable_flag = True
         if(len(list(set(Vparity_fail_index))) == 1 and len(list(set(Lparity_fail_index))) == 1):
+            print("One mistake was ditected.")
             error_v = Vparity_fail_index[0]
             error_l = Lparity_fail_index[0]
         elif(len(list(set(Vparity_fail_index))) == 0 and len(list(set(Lparity_fail_index))) == 0):
+            print(("There is no mistake."))
             error_v = -1
             error_l = -1
         else:
