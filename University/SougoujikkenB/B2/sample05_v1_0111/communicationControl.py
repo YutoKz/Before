@@ -285,7 +285,7 @@ class CommunicationControl:
         print(f"num_of_VRC : {num_of_VRC}")
 
         if(len(calculated_parity) < (num_of_VRC+8) or len(data_in_parity) < (num_of_VRC+8)):
-            return payload, True
+            return [], True
 
         for i in range(num_of_VRC):
             if(calculated_parity[i] != data_in_parity[i]):
@@ -304,7 +304,8 @@ class CommunicationControl:
         print(f"Failed index of LRC : {Lparity_fail_index}")
 
 
-        # 単一間違いの場合のみ位置特定可能
+        # 単一間違いの場合のみ位置特定可能、すなわち訂正可能
+        revisable_flag = True
         if(len(list(set(Vparity_fail_index))) == 1 and len(list(set(Lparity_fail_index))) == 1):
             error_v = Vparity_fail_index[0]
             error_l = Lparity_fail_index[0]
@@ -313,6 +314,7 @@ class CommunicationControl:
             error_l = -1
         else:
             print("Multiple mistakes were ditected.")
+            revisable_flag = False
             error_v = -1
             error_l = -1
 
@@ -350,10 +352,16 @@ class CommunicationControl:
             print('FAIL', end=", ")
 
         if(Vparity_flag and Lparity_flag):
-            print('Correct data\n')
+            print('Correct data')
+        else:
+            print('Incorrect data')
+
+        # OPTION 訂正可能ならACK, 不可能ならNACK
+        if(revisable_flag):
+            print("ACK\n")
             return payload, False
         else:
-            print('Incorrect data\n')
+            print("NACK\n")
             return payload, True
         
         
