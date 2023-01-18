@@ -271,7 +271,7 @@ class CommunicationControl:
 
         num_of_VRC = math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)
 
-        print(f"num_of_VRC : {num_of_VRC}/n")
+        print(f"num_of_VRC : {num_of_VRC}\n")
 
         if(len(calculated_parity) < (num_of_VRC+8) or len(data_in_parity) < (num_of_VRC+8)):
             return [], True
