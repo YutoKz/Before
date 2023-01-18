@@ -214,6 +214,7 @@ class CommunicationControl:
 
     def mac_layer_rx(self, data_in):
         idx = 0
+        print(f"total length : {len(data_in)}")
 
         #プリアンブルを探す
         while idx < len(data_in) and data_in[idx] != 1:
@@ -222,7 +223,6 @@ class CommunicationControl:
             #プリアンブルが見つけられなかったら空配列を返す（受信データなし）
             return [], False
         preamble = data_in[:idx + 1]
-        print(f"total length : {len(data_in)}")
         print(f"preamble{preamble}")
 
         if idx + 17 > len(data_in):
@@ -293,7 +293,7 @@ class CommunicationControl:
                 Vparity_flag= False
 
 
-        # 間違い見つけた != が == になってた
+        # 間違い発見 != が == になってた
         for i in range(7):
             if(calculated_parity[num_of_VRC + i] != data_in_parity[num_of_VRC + i]):
                 Lparity_fail_index.append(i)
@@ -321,18 +321,21 @@ class CommunicationControl:
         # 誤りが複数ある場合、位置の特定は不可能であり、わかるのは「誤りが複数ある」ことだけ
         print('')
         print('RxData=')
-        for i in range(math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)):
+        for i in range(num_of_VRC):
             for j in range(7):
                 if(i == error_v and j == error_l):
                     print('*', end=" ")
                 else:
                     print(payload_add[7 * i + j], end=" ")
+            print("|", end=" ")
             print(int(data_in_parity[i]), end=" ")
             print('')
         print('----------------------------')
         for i in range(8):
-            tmp = math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1) + i
+            tmp = num_of_VRC + i
             print(int(data_in_parity[tmp]), end=" ")
+            if(i==6):
+                print("|", end=" ")
         print("\n")
         
         print('Vparity', end=" ")
