@@ -240,7 +240,6 @@ class CommunicationControl:
         print(f"sender id{sender_id}")
         print(f"data_length{data_length}")
         
-        
         if receiver_id != self.my_id:
             return [], False
 
@@ -252,21 +251,13 @@ class CommunicationControl:
         payload = data_in[idx + 17:idx + 17 + self.binarylist_to_decimal(data_length)]
         print(f"payload    {payload}")
 
-
-        
-
-
         #パリティ
-        #parity = data_in[idx + 17 + self.binarylist_to_decimal(data_length)]
-        #print(f"parity{parity}")
-
         Vparity_flag = True
         Lparity_flag = True
         last_index = idx + 17 + self.binarylist_to_decimal(data_length) + math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1) + 8
         data_in_parity = data_in[idx + 17 + self.binarylist_to_decimal(data_length) : last_index]
         calculated_parity = self.calc_parity(payload)
 
-        # 受信parityとparityの計算の２つは正しく行えているので、問題はこの関数のこれ以降
         print(f"received_parity  {data_in_parity}")
         print(f"calculated_parity{calculated_parity}")
 
@@ -290,17 +281,14 @@ class CommunicationControl:
                 Vparity_fail_index.append(i)
                 Vparity_flag= False
 
-
         # (コードミス修正済み != が == になっていた)
         for i in range(7):
             if(calculated_parity[num_of_VRC + i] != data_in_parity[num_of_VRC + i]):
                 Lparity_fail_index.append(i)
                 Lparity_flag = False
 
-
         print(f"Failed index of VRC : {Vparity_fail_index}")
         print(f"Failed index of LRC : {Lparity_fail_index}")
-
 
         # 単一間違いの場合のみ位置特定可能、すなわち訂正可能
         revisable_flag = True
@@ -318,9 +306,8 @@ class CommunicationControl:
             error_v = -1
             error_l = -1
 
-
-        # 誤りは確実なもののみ表示
-        # 誤りが複数ある場合、位置の特定は不可能であり、わかるのは「誤りが複数ある」ことだけ
+        # 単一誤りの場合のみ、誤り箇所表示
+        # 誤りが複数ある場合、位置の特定は不可能であり、わかるのは「誤りが複数ある」ことのみ
         print('')
         print('RxData=')
         for i in range(num_of_VRC):
@@ -356,7 +343,7 @@ class CommunicationControl:
         else:
             print('Incorrect data')
 
-        # OPTION 訂正可能ならACK, 不可能ならNACK
+        # (OPTION) 訂正可能ならACK, 不可能ならNACK
         if(revisable_flag):
             print("ACK\n")
             return payload, False
@@ -364,10 +351,6 @@ class CommunicationControl:
             print("NACK\n")
             return payload, True
         
-        
-        
-
-
     def network_layer_rx(self, data_in):
         #１対１の通信なので何もしない。
         return data_in
