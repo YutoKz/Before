@@ -234,11 +234,11 @@ class CommunicationControl:
         sender_id = data_in[idx + 5:idx + 9]
         #次の8bitをデータ長として扱う
         data_length = data_in[idx + 9:idx + 17]
-        print(f"total length : {len(data_in)}")
+        
         print(f"receiver id{receiver_id}")
         print(f"sender id{sender_id}")
         print(f"data_length{data_length}")
-        
+        print(f"total length : {len(data_in)}")
         
         
         if receiver_id != self.my_id:
