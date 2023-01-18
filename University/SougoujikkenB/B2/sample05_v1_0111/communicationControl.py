@@ -222,6 +222,7 @@ class CommunicationControl:
             #プリアンブルが見つけられなかったら空配列を返す（受信データなし）
             return [], False
         preamble = data_in[:idx + 1]
+        print(f"total length : {len(data_in)}")
         print(f"preamble{preamble}")
 
         if idx + 17 > len(data_in):
@@ -238,7 +239,6 @@ class CommunicationControl:
         print(f"receiver id{receiver_id}")
         print(f"sender id{sender_id}")
         print(f"data_length{data_length}")
-        print(f"total length : {len(data_in)}")
         
         
         if receiver_id != self.my_id:
