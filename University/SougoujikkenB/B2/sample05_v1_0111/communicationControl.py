@@ -234,10 +234,11 @@ class CommunicationControl:
         sender_id = data_in[idx + 5:idx + 9]
         #次の8bitをデータ長として扱う
         data_length = data_in[idx + 9:idx + 17]
+        print(f"total length : {len(data_in)}")
         print(f"receiver id{receiver_id}")
         print(f"sender id{sender_id}")
         print(f"data_length{data_length}")
-        print(len(data_in))
+        
         
         
         if receiver_id != self.my_id:
@@ -281,7 +282,7 @@ class CommunicationControl:
 
         num_of_VRC = math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)
 
-        print(num_of_VRC)
+        print(f"num_of_VRC : {num_of_VRC}")
 
         if(len(calculated_parity) < (num_of_VRC+8) or len(data_in_parity) < (num_of_VRC+8)):
             return payload, True
@@ -299,17 +300,22 @@ class CommunicationControl:
                 Lparity_flag = False
 
 
-        print(Vparity_fail_index)
-        print(Lparity_fail_index)
+        print(f"Failed index of VRC : {Vparity_fail_index}")
+        print(f"Failed index of LRC : {Lparity_fail_index}")
 
 
         # 単一間違いの場合のみ位置特定可能
         if(len(list(set(Vparity_fail_index))) == 1 and len(list(set(Lparity_fail_index))) == 1):
             error_v = Vparity_fail_index[0]
             error_l = Lparity_fail_index[0]
-        else:
+        elif(len(list(set(Vparity_fail_index))) == 0 and len(list(set(Lparity_fail_index))) == 0):
             error_v = -1
             error_l = -1
+        else:
+            print("Multiple mistakes were ditected.")
+            error_v = -1
+            error_l = -1
+
 
         # 誤りは確実なもののみ表示
         # 誤りが複数ある場合、位置の特定は不可能であり、わかるのは「誤りが複数ある」ことだけ
