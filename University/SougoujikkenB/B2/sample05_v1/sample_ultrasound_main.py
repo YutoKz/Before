@@ -25,10 +25,10 @@ IS_MANCHESTER = True
 VOLUME = 0.7
 # 複数のマイク/スピーカーがある場合はここでINDEXを設定する
 INPUT_DEVICE_INDEX = 0
-OUTPUT_DEVICE_INDEX = 1
+OUTPUT_DEVICE_INDEX = 2
 # 録音データを（CHUNK/SAMPLING_RATE）秒ごとに処理する
-#CHUNK = 32768 #for Win10
-CHUNK = 8192 #for MacOS
+CHUNK = 32768 #for Win10
+#CHUNK = 8192 #for MacOS
 # 再生/録音サンプリングレート
 SAMPLING_RATE = 48000             # sampling frequency [Hz]
 # 再生チャネル （多分変更しなくて良い）
@@ -327,12 +327,9 @@ if __name__ == "__main__":
             if len(rx_result) > 0:
                 if nack_flag:
                     print("NACK_RECEIVED")
-                    # opitonal
-                    cc.state = "TX"
                 else:
                     print("ACK_RECEIVED")
-                    # optional
-                    cc.state = "RX"
+                cc.state = "RX"
             else:
                 cc.state = cc.state
         elif cc.state == "SLEEP":
