@@ -265,6 +265,8 @@ int main(int argc, char const *argv[])
 
         axis = rand() % 3;
         rotate(axis);
+        if(step % 10000 == 0)
+            printf("%d回目\n", step);
 
         int k = 0;
         while(1)

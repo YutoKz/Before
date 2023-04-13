@@ -1,13 +1,13 @@
 /*
     2023/01/16 code by Yuto Kizawa (2094572t)
-    2*2*2 のルービックキューブを完成させるプログラム
+    2-2-2 のルービックキューブを完成させるプログラム
     初期状態はファイルから入力
 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#define I_MAX 100000000
-#define SIZE 100000000
+#define I_MAX 200000
+#define SESSION_MAX 1000
 
 /*
     各色の番号
@@ -43,28 +43,27 @@
 */
 
 
-
 // 現在の色
 int color[6][4];
 // 初期の色
 int init_color[6][4];
 // 現時点最適手順
-int procedure[SIZE];
-int procedure_tmp[SIZE];
+int procedure[I_MAX];
+int procedure_tmp[I_MAX];
 // 現時点最適手順数
 int num_of_procedures = -1;
 int num_of_procedures_tmp = 0;
+
 
 // 90deg 回転
 void rotate(int axis)
 {
     /*
         右ねじ正
-        0 -> x軸回り
-        1 -> y軸回り
-        2 -> z軸回り
+        0 -> x軸回り    面3を回転
+        1 -> y軸回り    面5を回転
+        2 -> z軸回り    面1を回転
     */
-
 
     int i, j;
     int color_tmp_top[4], color_tmp_side[4][2];
@@ -163,9 +162,6 @@ void rotate(int axis)
 }
 
 
-
-
-
 // 完成したか判定
 int judge()
 {
@@ -184,6 +180,7 @@ int judge()
     return 1;
 }
 
+
 // 完成していた場合の処理
 void complete()
 {
@@ -192,12 +189,12 @@ void complete()
     if((num_of_procedures < 0) || (num_of_procedures_tmp < num_of_procedures))
     {
         num_of_procedures = num_of_procedures_tmp;
-        for(i = 0; i < SIZE; i++)
+        for(i = 0; i < I_MAX; i++)
         {
             procedure[i] = procedure_tmp[i];
         }
     }
-    printf("current num_of_procedures = %d\n", num_of_procedures);
+    printf("current num_of_procedures : %d\n", num_of_procedures);
 
     // 次に向け元に戻す
     for(i = 0; i < 6; i++)
@@ -208,23 +205,45 @@ void complete()
         }
     }
     num_of_procedures_tmp = 0;
-    for(i = 0; i < SIZE; i++)
+    for(i = 0; i < I_MAX; i++)
     {
         procedure_tmp[i] = -1;
     }
 }
 
 
+int allreduce_min( int local_val )
+{
+  int global_max;
+  MPI_Allreduce( &local_val, &global_max, 1, 
+                 MPI_INT, MPI_MIN, MPI_COMM_WORLD );
+  return global_max;
+}
+
+
+
 
 
 int main(int argc, char const *argv[])
 {
+    // MPI関連の準備
+    int nprocs, myrank, tag = 100;
+    MPI_Status status;
+
+    MPI_Init( &argc, &argv );                 // MPI開始
+    MPI_Comm_size( MPI_COMM_WORLD, &nprocs ); // プロセス数取得
+    MPI_Comm_rank( MPI_COMM_WORLD, &myrank ); // 「自分」のランク番号
+
+    printf( " I am %d in %d\n", myrank, nprocs );
+
+
+
     int i, j;
     int axis;
-    srand((unsigned int)time(NULL));
+    srand(myrank * 100);
 
     // 手順用配列初期化
-    for(i = 0; i < SIZE; i++)
+    for(i = 0; i < I_MAX; i++)
     {
         procedure[i] = -1;
         procedure_tmp[i] = -1;
@@ -254,6 +273,7 @@ int main(int argc, char const *argv[])
 
 
     // メインループ
+    /*
     int step = 0;
     while(step < I_MAX)
     {
@@ -284,33 +304,111 @@ int main(int argc, char const *argv[])
         
         step++;
     }
+    */
 
+/*
+    for ( int n=0; n<SESSION_MAX; n++ ) { // セッションを繰り返す
+    if ( myrank == 0 && n % 10 == 0 ) 
+        printf( "* session %d.\n", n );
 
-
-
-
-    // 最終的な結果を表示
-    FILE *fp1;
-    fp1 = fopen("out.txt", "w");
-    int tmp = procedure[0];
-    //i = 0;
-    // while(procedure[i] >= 0)
-    for(i = 0; i < num_of_procedures; i++)
-    {
-        //if(procedure[i] == tmp)
-        //{
-            fprintf(fp1, "%d ", procedure[i]);
-        //}
-        //else
-        //{
-        //    printf("\n%d ");
-        //}
-        //tmp = procedure[i];
-        //i++;
+    for ( int counter=0; counter<100; counter++ ) {
+        gol__step_time( &gol );           // 一つのセッションは100ステップ
     }
 
-    fclose(fp);
-    fclose(fp1);
+    jobs[n] = gol.job;                  // ジョブ情報を保存
+
+    if ( gol.job.status.change_period != 0 ) {      // 周期状態に到達した
+      gol__save_status_to_txt( record_file, &gol ); // ステップ数と周期を書き出す
+      gol__new_start( &gol );                       // 新しい初期条件で再開
+    }
+    MPI_Barrier( MPI_COMM_WORLD );     // すべてのプロセスがここで同期をとる。
+                                       //   各プロセスは独立に計算を進めること
+                                       //   ができるので、同期を取る必要は実は
+                                       //   ない。このあとのallreduce_sum で
+                                       //   すべてのプロセスが揃うまで待つので。
+  }
+
+*/
+    int n, step;
+    for(n = 0; n < SESSION_MAX; n++)
+    {
+        for(step = 0; step < I_MAX; step++)
+        {
+            if(judge() == 1)
+            {
+                complete();
+                break;  // 次のセッションへ
+            }
+
+            axis = rand() % 3;
+            rotate(axis);
+
+            /*
+            int k = 0;
+            while(1)
+            {
+                if(procedure_tmp[k] < 0)
+                {
+                    procedure_tmp[k] = axis;
+                    num_of_procedures_tmp = k + 1;
+                    break;
+                } 
+                k++;
+            }
+            */
+            procedure_tmp[num_of_procedures_tmp] = axis;
+            num_of_procedures_tmp++;
+        }
+    }
+
+    printf( "process %d finished.\n", myrank);
+
+    int final_num_of_procedures = allreduce_min(num_of_procedures);
+
+    if ( num_of_procedures == final_num_of_procedures) {
+        /*
+        printf( "*********************************************\n" );
+        printf( " Best record by myrank = %d\n", myrank );
+        gol__print_job( stdout, best_in_this_rank );
+        */
+
+        printf("Best record by process %d.\n", myrank);
+
+        // 最終的な結果を表示
+        FILE *fp1;
+        fp1 = fopen("out.txt", "w");
+        int before = -1;
+        //i = 0;
+        // while(procedure[i] >= 0)
+        for(i = 0; i < num_of_procedures; i++)
+        {
+            //if(procedure[i] == tmp)   
+            //{
+            //    fprintf(fp1, "%d ", procedure[i]);
+            //}
+            //else
+            //{
+            //    printf("\n%d ");
+            //}
+            //tmp = procedure[i];
+            //i++;
+            if(procedure[i] == before)
+                fprintf(fp1, " %d", procedure[i]);
+            else
+                fprintf(fp1, "\n%d", procedure[i]);
+
+        }
+        fclose(fp1);
+    }
+
+
+
+
+
     
+
+    fclose(fp);
+    
+    MPI_Finalize();
     return 0;
 }

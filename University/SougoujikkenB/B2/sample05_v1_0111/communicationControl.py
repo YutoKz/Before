@@ -58,7 +58,8 @@ class CommunicationControl:
                     parity_local += data_in[7 * i + j]
 
             parity_local = parity_local % 2
-            parity = np.append(parity, parity_local)
+            #parity = np.append(parity, parity_local)
+            parity.append(parity_local)
             parity_local = 0
         
         # LRC
@@ -72,7 +73,8 @@ class CommunicationControl:
                     parity_local += data_in[7 * j + i]
 
             parity_local = parity_local % 2
-            parity = np.append(parity, parity_local)
+            #parity = np.append(parity, parity_local)
+            parity.append(parity_local)
             parity_local = 0
         
         # 最後の1個
@@ -80,8 +82,8 @@ class CommunicationControl:
             parity_local += parity[i]
 
         parity_local = parity_local % 2
-        parity = np.append(parity, parity_local)
-        parity_local = 0
+        #parity = np.append(parity, parity_local)
+        parity.append(parity_local)
         
 
         # VRC LRC の順に配列として返す
@@ -212,6 +214,7 @@ class CommunicationControl:
 
     def mac_layer_rx(self, data_in):
         idx = 0
+        print(f"total length : {len(data_in)}")
 
         #プリアンブルを探す
         while idx < len(data_in) and data_in[idx] != 1:
@@ -232,11 +235,10 @@ class CommunicationControl:
         sender_id = data_in[idx + 5:idx + 9]
         #次の8bitをデータ長として扱う
         data_length = data_in[idx + 9:idx + 17]
+        
         print(f"receiver id{receiver_id}")
         print(f"sender id{sender_id}")
         print(f"data_length{data_length}")
-        print(len(data_in))
-        
         
         if receiver_id != self.my_id:
             return [], False
@@ -247,63 +249,82 @@ class CommunicationControl:
 
         #データ
         payload = data_in[idx + 17:idx + 17 + self.binarylist_to_decimal(data_length)]
-        print(f"payload{payload}")
-
-
-        
-
+        print(f"payload    {payload}")
 
         #パリティ
-        #parity = data_in[idx + 17 + self.binarylist_to_decimal(data_length)]
-        #print(f"parity{parity}")
-
         Vparity_flag = True
         Lparity_flag = True
         last_index = idx + 17 + self.binarylist_to_decimal(data_length) + math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1) + 8
         data_in_parity = data_in[idx + 17 + self.binarylist_to_decimal(data_length) : last_index]
         calculated_parity = self.calc_parity(payload)
 
-        payload_add = payload
+        print(f"received_parity  {data_in_parity}")
+        print(f"calculated_parity{calculated_parity}")
+
+        payload_add = []
+        payload_add += payload
         for i in range(7 - self.binarylist_to_decimal(data_length) % 7):
-            payload_add += [0]
+            payload_add.append(0)
 
         Vparity_fail_index = []
         Lparity_fail_index = []
-        tmp = math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)
-        for i in range(tmp):
+
+        num_of_VRC = math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)
+
+        print(f"num_of_VRC : {num_of_VRC}\n")
+
+        if(len(calculated_parity) < (num_of_VRC+8) or len(data_in_parity) < (num_of_VRC+8)):
+            return [], True
+
+        for i in range(num_of_VRC):
             if(calculated_parity[i] != data_in_parity[i]):
-                Vparity_fail_index += [i]
+                Vparity_fail_index.append(i)
                 Vparity_flag= False
+
+        # (コードミス修正済み != が == になっていた)
         for i in range(7):
-            if(calculated_parity[tmp + i] == data_in_parity[tmp + i]):
-                Lparity_fail_index += [i]
+            if(calculated_parity[num_of_VRC + i] != data_in_parity[num_of_VRC + i]):
+                Lparity_fail_index.append(i)
                 Lparity_flag = False
 
-        
-        if(len(Vparity_fail_index) == 1 and len(Lparity_fail_index) == 1):
+        print(f"Failed index of VRC : {Vparity_fail_index}")
+        print(f"Failed index of LRC : {Lparity_fail_index}")
+
+        # 単一間違いの場合のみ位置特定可能、すなわち訂正可能
+        revisable_flag = True
+        if(len(list(set(Vparity_fail_index))) == 1 and len(list(set(Lparity_fail_index))) == 1):
+            print("One mistake was ditected.")
             error_v = Vparity_fail_index[0]
             error_l = Lparity_fail_index[0]
+        elif(len(list(set(Vparity_fail_index))) == 0 and len(list(set(Lparity_fail_index))) == 0):
+            print(("There is no mistake."))
+            error_v = -1
+            error_l = -1
         else:
+            print("Multiple mistakes were ditected.")
+            revisable_flag = False
             error_v = -1
             error_l = -1
 
-
-        # 誤りは確実なもののみ表示
-        # 誤りが複数ある場合、位置の特定は不可能であり、わかるのは「誤りが複数ある」ことだけ
+        # 単一誤りの場合のみ、誤り箇所表示
+        # 誤りが複数ある場合、位置の特定は不可能であり、わかるのは「誤りが複数ある」ことのみ
         print('')
         print('RxData=')
-        for i in range(math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1)):
+        for i in range(num_of_VRC):
             for j in range(7):
                 if(i == error_v and j == error_l):
                     print('*', end=" ")
                 else:
                     print(payload_add[7 * i + j], end=" ")
+            print("|", end=" ")
             print(int(data_in_parity[i]), end=" ")
             print('')
         print('----------------------------')
         for i in range(8):
-            tmp = math.floor((self.binarylist_to_decimal(data_length) - 1) / 7 + 1) + i
+            tmp = num_of_VRC + i
             print(int(data_in_parity[tmp]), end=" ")
+            if(i==6):
+                print("|", end=" ")
         print("\n")
         
         print('Vparity', end=" ")
@@ -318,16 +339,18 @@ class CommunicationControl:
             print('FAIL', end=", ")
 
         if(Vparity_flag and Lparity_flag):
-            print('Correct data\n')
+            print('Correct data')
+        else:
+            print('Incorrect data')
+
+        # (OPTION) 訂正可能ならACK, 不可能ならNACK
+        if(revisable_flag):
+            print("ACK\n")
             return payload, False
         else:
-            print('Incorrect data\n')
+            print("NACK\n")
             return payload, True
         
-        
-        
-
-
     def network_layer_rx(self, data_in):
         #１対１の通信なので何もしない。
         return data_in
