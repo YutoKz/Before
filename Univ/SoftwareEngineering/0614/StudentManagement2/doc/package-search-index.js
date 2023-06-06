@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"se.t2094572.student.util"},{"l":"すべてのパッケージ","u":"allpackages-index.html"}];updateSearchResults();

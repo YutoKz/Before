@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"se.t2094572.student.util","l":"StudentMapFactory"}];updateSearchResults();
