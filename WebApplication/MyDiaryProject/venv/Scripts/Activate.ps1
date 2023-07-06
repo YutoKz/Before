@@ -166,6 +166,11 @@ function Get-PyVenvConfig(
 
 <# Begin Activate script --------------------------------------------------- #>
 
+$env:PYTHONPATH = "WebApplication/MyDiaryProject/venv/Lib/site-packages"
+
+
+
+
 # Determine the containing directory of this script
 $VenvExecPath = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $VenvExecDir = Get-Item -Path $VenvExecPath
