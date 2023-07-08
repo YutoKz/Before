@@ -21,3 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("polls/", include("polls.urls")),
 ]
+
+"""
+    includeに遭遇すると、受けたURLの残りの部分をinclude先に渡す
+"""
