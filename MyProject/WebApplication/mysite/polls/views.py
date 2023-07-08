@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.views import generic   # 日記で使ったやつ！
 from .models import Question, Choice
 
+
 class IndexView(generic.ListView):
     # おそらく、templatesからのパスで指定
     template_name = "polls/index.html"
@@ -20,12 +21,10 @@ class IndexView(generic.ListView):
         """Return the last five published questions."""
         return Question.objects.order_by("-pub_date")[:5]
 
-
 class DetailView(generic.DetailView):
     # 自動的にコンテキスト変数questionがわたされる
     model = Question
     template_name = "polls/detail.html"
-
 
 class ResultsView(generic.DetailView):
     model = Question
