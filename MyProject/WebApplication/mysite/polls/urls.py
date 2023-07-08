@@ -5,6 +5,15 @@ from . import views
 app_name = "polls"  # polls: detail のようにURLを指定できるようになる　他アプリとのname重複に対応
 
 urlpatterns = [
+    path("", views.IndexView.as_view(), name="index"),
+    # pkで渡すよう、genericView内で決まってる
+    path("<int:pk>/", views.DetailView.as_view(), name="detail"),
+    path("<int:pk>/results/", views.ResultsView.as_view(), name="results"),
+    path("<int:question_id>/vote/", views.vote, name="vote"),
+]
+
+""" generic view使う前
+urlpatterns = [
     # ex: /polls/
     path("", views.index, name="index"),
     # ex: /polls/5/
@@ -13,4 +22,4 @@ urlpatterns = [
     path("<int:question_id>/results/", views.results, name="results"),
     # ex: /polls/5/vote/
     path("<int:question_id>/vote/", views.vote, name="vote"),
-]
+]"""
