@@ -1,5 +1,5 @@
 
-// OXゲーム  3×3
+// OXゲーム  3×3   App.js
 
 import { useState } from 'react';
 
